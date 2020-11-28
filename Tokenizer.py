@@ -22,7 +22,7 @@ class Tokenizer:
             self.tok = WordPunctTokenizer()
         elif(mode == 'Treebank'):
             from nltk.tokenize import TreebankWordTokenizer
-            self.vec = TreebankWordTokenizer()
+            self.tok = TreebankWordTokenizer()
         elif(mode == 'Regexp'):
             raise Exception("TODO")
         self.mode = mode

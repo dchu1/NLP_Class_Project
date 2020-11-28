@@ -29,39 +29,61 @@ class Downloader:
   
   TODO: update code to allow for before and after range
   """
-  def fetch_subreddit(self, subreddit_name):
-    before_epoch=int(dt.datetime(2020, 10, 16).timestamp())
-    comments = []
+  def fetch_subreddit(self, content_type, subreddit_name):
+    before_epoch=int(dt.datetime.now().timestamp())
+    content = []
     
     # rate limit = 1 per second, default
     # comment limit = 100 per request, default
 
     # check for filter
     if len(self.filter_fields) > 0:
-      gen = self.api.search_comments(
-          subreddit=subreddit_name,
-          filter=self.filter_fields,
-          before=before_epoch
-      )
+      # if we want comments
+      if content_type == "comments":
+        gen = self.api.search_comments(
+            subreddit=subreddit_name,
+            filter=self.filter_fields,
+            before=before_epoch
+        )
+      else: # otherwise we want submissions
+        gen = self.api.search_submissions(
+            subreddit=subreddit_name,
+            filter=self.filter_fields,
+            before=before_epoch,
+            score='>2',
+            is_self=True # only want selftext submissions
+        )
     else:
-      gen = self.api.search_comments(
-          subreddit=subreddit_name,
-          before=before_epoch
-      )
+      # if we want comments
+      if content_type == "comments":
+        gen = self.api.search_comments(
+            subreddit=subreddit_name,
+            before=before_epoch
+        )
+      else: # otherwise we want submissions
+        gen = self.api.search_submissions(
+            subreddit=subreddit_name,
+            before=before_epoch,
+            score='>2',
+            is_self=True # only want selftext submissions
+        )
 
     with tqdm(total=self.max_comment_count) as pbar:
       for c in gen:
-        comments.append(c)
+        content.append(c)
         pbar.update(1)
-        if len(comments) >= self.max_comment_count:
+        if len(content) >= self.max_comment_count:
           break
 
-    df_subreddit = pd.DataFrame([thing.d_ for thing in comments])#.drop(["created_utc", "created"], axis=1)
-    df_subreddit = df_subreddit[~(df_subreddit.body.isin(["[removed]","[deleted]"])) & (df_subreddit.score > 0)]
+    df_subreddit = pd.DataFrame([thing.d_ for thing in content])#.drop(["created_utc", "created"], axis=1)
+    if content_type == "comments":
+      df_subreddit = df_subreddit[~(df_subreddit.body.isin(["[removed]","[deleted]"])) & (df_subreddit.score > 0)]
+    else:
+      df_subreddit = df_subreddit[~(df_subreddit.selftext.isin(["[removed]","[deleted]"])) & (df_subreddit.score > 0) & (df_subreddit.num_comments > 1)]
 
     """Pickle the data for download if necessary"""
     if self.save_local:
-      filename = subreddit_name + ".csv"
+      filename = subreddit_name + "_" + content_type + ".csv"
       if self.compress:
         compression_opts = dict(method='zip', archive_name=filename)
         df_subreddit.to_csv(os.path.join(self.outpath, filename), index=False, compression=compression_opts) 
@@ -73,11 +95,12 @@ class Downloader:
   def load_pickled_sub(subreddit_path):
     return pd.read_pickle(subreddit_path)
 
-# python Downloader.py outpath comment_count subreddits
+# python Downloader.py outpath comment_count type subreddits
+# ex: python Downloader.py "./data" 10000 submission liberal conservative
 def main(argv):
   dloader = Downloader(outpath = argv[0], max_comment_count = int(argv[1]))
-  for subreddit in argv[2:]:
-    dloader.fetch_subreddit(subreddit)
+  for subreddit in argv[3:]:
+    dloader.fetch_subreddit(argv[2], subreddit)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

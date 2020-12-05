@@ -43,7 +43,7 @@ class Pipeline:
         if(self.norm):
             Xt = normalize(Xt)
 
-        print('Transformed Data shape: ',Xt.shape)
+        #print('Transformed Data shape: ',Xt.shape)
         # fit our model
         self.model.fit(Xt, y)
         return Xt

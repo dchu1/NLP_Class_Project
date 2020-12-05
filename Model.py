@@ -62,7 +62,7 @@ class Model:
             trainLabels = makeLabelArr(trainLabels)
             if(isinstance(trainData, csr_matrix)): # Consider dataloader
                 trainData = trainData.toarray()
-            return(self.model.fit(trainData, trainLabels, epochs = 25, batch_size=int(trainData.shape[0]/15)))
+            return(self.model.fit(trainData, trainLabels, epochs = 150, batch_size=int(trainData.shape[0]/5)))
         return(self.model.fit(trainData, list(trainLabels)))
     
     def validate(self,labels,predictions,verbose = True):
@@ -78,7 +78,6 @@ class Model:
             print('F1 Score wrt. class 0:\t %0.3f'%(results[2][0]))
 
         return(results,acc)
-
 
     def predict(self, testData, testLabels = None, verbose = True):
         if(self.modelType == 'Neural Network' and isinstance(testData, csr_matrix)):

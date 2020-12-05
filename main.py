@@ -5,6 +5,7 @@ from Pipeline import Pipeline
 from Tokenizer import Tokenizer
 from Stemmer import Stemmer
 from Splitter import splitRows
+from OptimNN import OptimNN
 import pdb
 import numpy as np
 import pandas as pd
@@ -70,7 +71,7 @@ def main(argv):
         elif arg == "vect-count":
             transforms.append(Vectorizer(mode='Count'))
         elif arg == "vect-lda":
-            transforms.append(Vectorizer(mode='LDA', ldaSplits=10))
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=128))
         elif arg == "svm":
             transforms.append(Model('svm'))
         elif arg == "nb":
@@ -78,19 +79,22 @@ def main(argv):
         elif arg == "lr":
             transforms.append(Model('lr'))
         elif arg == "nn":
-            transforms.append(Model('nn', inputDim = 10)) #Configured for LDA
+            transforms.append(Model('nn', inputDim = 10000)) #Configured for Vectorizer with vectors limited to 1000
         elif arg == "norm":
             norm = True
         elif arg == "no-verb":
             verbose =  False
         elif arg == "split-sentences":
             split = "sentences"
+        elif arg == "nn-optim":
+            # Memory optimized neural network.
+            transforms.append(OptimNN(vecMode='TFIDF',epochs=2,batchSize=2048))
 
     pipe = Pipeline(transforms, norm=norm)
 
     # read our data (hardcoded for now)
-    df0 = pd.read_pickle("./data/democrat_comments.pkl")#.sample(frac = 0.01) # DEBUG ONLY
-    df1 = pd.read_pickle("./data/republican_comments.pkl")#.sample(frac = 0.01) # DEBUG ONLY
+    df0 = pd.read_pickle("./data/democrat_comments.pkl")#.sample(frac = 0.05) # DEBUG ONLY
+    df1 = pd.read_pickle("./data/republican_comments.pkl")#.sample(frac = 0.05) # DEBUG ONLY
 
     if(split is not None):
         if(verbose):

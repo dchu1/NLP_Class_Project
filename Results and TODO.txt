@@ -16,6 +16,12 @@ Config: toke,stem-lemmatize,vect-lda,norm,lr | LDA-N = 5
 	Recall wrt. class 0:     0.578
 	F1 Score wrt. class 0:   0.645
 
+Config: toke,stem-lemmatize,vect-lda,nn | LDA-N = 10
+	Accuracy of the model:   0.615
+	Precision wrt. class 0:  0.620
+	Recall wrt. class 0:     0.577
+	F1 Score wrt. class 0:   0.598
+
 Config: toke,stem-lemmatize,vect-lda,norm,lr | LDA-N = 25
 	Accuracy of the model:   0.624
 	Precision wrt. class 0:  0.538
@@ -63,3 +69,47 @@ To Discuss:
 	Make the predicition application (small web-app ?)
 	Make a weightage system for high scoring comments and/or filter the dataset by comment score
 	The Paper
+
+After Paper submission:
+
+Config: toke,stem-lemmatize,vect-tfidf,nn | Batch size: N/10, epochs = 50, Vect-max_features: 10000
+Accuracy of the model:   0.686
+Precision wrt. class 0:  0.684
+Recall wrt. class 0:     0.681
+F1 Score wrt. class 0:   0.682
+
+Config: toke,stem-porter,nn-optim | vecMode='TFIDF',epochs=2,batchSize=2048
+Accuracy of the model:   0.690
+Precision wrt. class 0:  0.683
+Recall wrt. class 0:     0.700
+F1 Score wrt. class 0:   0.691
+
+Config: toke,stem-lemmatize,nn-optim | vecMode='TFIDF',epochs=50,batchSize=2048 (stopped early at 7 epochs) | program took 10-12Gb memory
+Accuracy of the model:   0.691
+Precision wrt. class 0:  0.690
+Recall wrt. class 0:     0.682
+F1 Score wrt. class 0:   0.686
+
+Config: toke,stem-lemmatize,nn-optim | vecMode='Count',epochs=4,batchSize=2048
+Accuracy of the model:   0.693
+Precision wrt. class 0:  0.687
+Recall wrt. class 0:     0.697
+F1 Score wrt. class 0:   0.692
+
+Config: toke,stem-lemmatize,nn-optim | vecMode='TFIDF',epochs=2,batchSize=2048 | program took 10-12Gb memory
+Accuracy of the model:   0.693
+Precision wrt. class 0:  0.693
+Recall wrt. class 0:     0.682
+F1 Score wrt. class 0:   0.688
+
+Config: toke,stem-lemmatize,nn-optim | vecMode='TFIDF',epochs=5,batchSize=4096,maxVecFeatures=20000
+Accuracy of the model:   0.694
+Precision wrt. class 0:  0.692
+Recall wrt. class 0:     0.691
+F1 Score wrt. class 0:   0.691
+
+Config: toke,stem-lemmatize,nn-optim | vecMode='TFIDF',epochs=1,batchSize=4096,maxVecFeatures=20000
+Accuracy of the model:   0.694
+Precision wrt. class 0:  0.700
+Recall wrt. class 0:     0.667
+F1 Score wrt. class 0:   0.683

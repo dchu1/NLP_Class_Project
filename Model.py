@@ -6,6 +6,8 @@ Models:
     Logistic Regression: lr
     Support Vector Machine: svm
 '''
+saveModel = True # For scikit learn models only
+
 import numpy as np
 def makeLabelArr(arr):
     res = np.zeros((arr.shape[0],2))
@@ -63,7 +65,11 @@ class Model:
             if(isinstance(trainData, csr_matrix)): # Consider dataloader
                 trainData = trainData.toarray()
             return(self.model.fit(trainData, trainLabels, epochs = 150, batch_size=int(trainData.shape[0]/5)))
-        return(self.model.fit(trainData, list(trainLabels)))
+        res = self.model.fit(trainData, list(trainLabels))
+        if(saveModel):
+            from joblib import dump
+            dump(self.model, 'saved/model.sav')
+        return(res)
     
     def validate(self,labels,predictions,verbose = True):
         from sklearn.metrics import precision_recall_fscore_support

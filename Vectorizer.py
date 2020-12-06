@@ -22,6 +22,7 @@ class Vectorizer:
             from sklearn.feature_extraction.text import CountVectorizer
             from sklearn.decomposition import LatentDirichletAllocation
             self.preVec = CountVectorizer()
+            print('Initializing LDA with',ldaSplits,'splits')
             self.vec = LatentDirichletAllocation(n_components=ldaSplits)
 
         self.mode = mode
@@ -36,13 +37,19 @@ class Vectorizer:
         if(self.mode == 'LDA'):
             print('Generating LDA Vector')
             data = self.preVec.fit_transform(data)
-        return(self.vec.fit(data))
+        res = self.vec.fit(data)
+        from joblib import dump
+        dump(self.vec, 'saved/vectorizer.sav')
+        return(res)
 
     def fitTransform(self, data):
         if(self.mode == 'LDA'):
             print('Generating LDA Vector')
             data = self.preVec.fit_transform(data)
-        return(self.vec.fit_transform(data))
+        res = self.vec.fit_transform(data)
+        from joblib import dump
+        dump(self.vec, 'saved/vectorizer.sav')
+        return(res)
 
     def transform(self, data):
         if(self.mode == 'LDA'):

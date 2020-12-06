@@ -70,8 +70,18 @@ def main(argv):
             transforms.append(Vectorizer(mode='TFIDF'))
         elif arg == "vect-count":
             transforms.append(Vectorizer(mode='Count'))
-        elif arg == "vect-lda":
-            transforms.append(Vectorizer(mode='LDA', ldaSplits=128))
+        elif arg == "vect-lda-2":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=2))
+        elif arg == "vect-lda-10":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=10))
+        elif arg == "vect-lda-25":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=25))
+        elif arg == "vect-lda-50":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=50))
+        elif arg == "vect-lda-150":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=150))
+        elif arg == "vect-lda-500":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=500))
         elif arg == "svm":
             transforms.append(Model('svm'))
         elif arg == "nb":

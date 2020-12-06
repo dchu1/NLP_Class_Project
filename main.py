@@ -5,6 +5,7 @@ from Pipeline import Pipeline
 from Tokenizer import Tokenizer
 from Stemmer import Stemmer
 from Splitter import splitRows
+from OptimNN import OptimNN
 import pdb
 import numpy as np
 import pandas as pd
@@ -69,8 +70,18 @@ def main(argv):
             transforms.append(Vectorizer(mode='TFIDF'))
         elif arg == "vect-count":
             transforms.append(Vectorizer(mode='Count'))
-        elif arg == "vect-lda":
+        elif arg == "vect-lda-2":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=2))
+        elif arg == "vect-lda-10":
             transforms.append(Vectorizer(mode='LDA', ldaSplits=10))
+        elif arg == "vect-lda-25":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=25))
+        elif arg == "vect-lda-50":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=50))
+        elif arg == "vect-lda-150":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=150))
+        elif arg == "vect-lda-500":
+            transforms.append(Vectorizer(mode='LDA', ldaSplits=500))
         elif arg == "svm":
             transforms.append(Model('svm'))
         elif arg == "nb":
@@ -78,19 +89,22 @@ def main(argv):
         elif arg == "lr":
             transforms.append(Model('lr'))
         elif arg == "nn":
-            transforms.append(Model('nn', inputDim = 10)) #Configured for LDA
+            transforms.append(Model('nn', inputDim = 10000)) #Configured for Vectorizer with vectors limited to 1000
         elif arg == "norm":
             norm = True
         elif arg == "no-verb":
             verbose =  False
         elif arg == "split-sentences":
             split = "sentences"
+        elif arg == "nn-optim":
+            # Memory optimized neural network.
+            transforms.append(OptimNN(vecMode='TFIDF',epochs=2,batchSize=2048))
 
     pipe = Pipeline(transforms, norm=norm)
 
     # read our data (hardcoded for now)
-    df0 = pd.read_pickle("./data/democrat_comments.pkl")#.sample(frac = 0.01) # DEBUG ONLY
-    df1 = pd.read_pickle("./data/republican_comments.pkl")#.sample(frac = 0.01) # DEBUG ONLY
+    df0 = pd.read_pickle("./data/democrat_comments.pkl")#.sample(frac = 0.05) # DEBUG ONLY
+    df1 = pd.read_pickle("./data/republican_comments.pkl")#.sample(frac = 0.05) # DEBUG ONLY
 
     if(split is not None):
         if(verbose):

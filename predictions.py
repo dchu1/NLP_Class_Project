@@ -3,6 +3,9 @@ from Tokenizer import Tokenizer
 from Stemmer import Stemmer
 from Vectorizer import Vectorizer
 import numpy as np
+import pandas as pd
+from Downloader import Downloader
+from Model import Model
 import sys
 
 # Config: toke,stem-lemmatize,vect-tfidf,lr
@@ -11,34 +14,70 @@ stemmer = Stemmer('Lemmatize')
 vectorizer = load('saved/vectorizer.sav')
 model = load('saved/model.sav')
 
-'''
-############### DEBUG
-import pandas as pd
-
-df0 = pd.read_pickle("./data/democrat_comments.pkl").sample(frac = 0.05) # DEBUG ONLY
-df1 = pd.read_pickle("./data/republican_comments.pkl").sample(frac = 0.05) # DEBUG ONLY
-
-label0 = df0.subreddit.iloc[0]
-label1 = df1.subreddit.iloc[0]
-
-# concatenate and clean our data
-X = pd.concat([df0.body, df1.body], ignore_index=True)
-y = pd.concat([df0.subreddit, df1.subreddit], ignore_index=True).replace(to_replace=[label0, label1], value=[0, 1])
-
-# split into training and test
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-############### DEBUG
-predData = X_test
-predData = vectorizer.transform(stemmer.transform((tokenizer.transform(np.array(predData)))))
-predictions = model.predict(predData)
-labels = np.array(y_test)
-'''
-
 def makePredictions(predData):
     predData = vectorizer.transform(stemmer.transform((tokenizer.transform(np.array(predData)))))
     predictions = model.predict(predData)
     return(predictions)
+
+def getCommentPreds(comment):
+    print('Making prediction for the comment:',comment)
+    predictions = makePredictions([comment])
+    print(predictions)
+    return(predictions)
+
+def getUserPreds(username):
+    print('Fetching comments for user:',username)
+    comments = [] #fetch comments of user
+
+    downloader = Downloader(save_local=False,max_comment_count=1000) #DEBUG
+    res = downloader.fetch_subreddit('user',username)
+
+    data = res[['subreddit','score','body']]
+    comments = data['body'].to_numpy()
+    if(len(comments) == 0):
+        print('No comments found. Exiting')
+        exit()
+    print('Making predictions for',len(comments),'comments:')
+    predictions = makePredictions(comments)
+    data.insert(0,'predictions',predictions,True)
+
+    res = {
+        'predDem': list(predictions).count(0),
+        'predRep':list(predictions).count(1),
+        'countDem':len(data[data['subreddit']=='democrats']),
+        'countRep': len(data[data['subreddit']=='Republican'])
+    }
+
+    print('Total classified as Democrat:',res['predDem'])
+    print('Total classified as Republican:',res['predRep'])
+    print('Total posts in r/democrat',res['countDem'])
+    print('Total posts in r/republican',res['countRep'])
+
+    repData = data[data['subreddit']=='Republican']
+    demData = data[data['subreddit']=='democrats']
+    
+    demPredComments = []
+    repPredComments = []
+    labels = []
+    predictions = []
+    for _,x in demData.iterrows():
+        labels.append(0)
+        demPredComments.append(x['body'])
+        predictions.append(x['predictions'])
+    for _,x in repData.iterrows():
+        labels.append(1)
+        repPredComments.append(x['body'])
+        predictions.append(x['predictions'])
+
+    res['demPredComments'] = demPredComments
+    res['repPredComments'] = repPredComments
+
+    m = Model()
+    correctPreds = list(np.array(labels)==np.array(predictions)).count(True)
+    print('Correcly Predicted %i/%i comments in r/democrats or r/republican subreddits'%(correctPreds,len(predictions)))
+    res['valAcc'] = correctPreds/len(predictions)
+    print('The validation accuracy is:',res['valAcc'])
+    return(res)
 
 if __name__ == "__main__":
     '''
@@ -46,20 +85,19 @@ if __name__ == "__main__":
     mode:
         c -> comment. 2nd argument should be the comment string (spaces are allowed)
         u -> username. 2nd argument should be the username.
+    examples:
+        python predictions.py u IBiteYou
+        python predictions.py u TrumpizzaTraitor
     '''
     args = sys.argv[1:]
     if(args[0]) == 'c':
-        comments = [' '.join(args[1:])]
-        print('Making prediction for the comment:',comments[0])
+        getCommentPreds(' '.join(args[1:]))
         
     if(args[0]) == 'u':
-        username = ' '.join(args[1:])
-        print('Fetching comments for user:',username)
-        comments = [] #fetch comments of user
-        if(len(comments) == 0):
-            print('No comments found. Exiting')
-            exit()
-        print('Making predictions for',len(comments),'comments:')
+        getUserPreds(' '.join(args[1:]))
         
-    predictions = makePredictions(comments)
-    print(predictions)
+'''
+Test usernames
+True Democrat: TrumpizzaTraitor
+True Republican: IBiteYou
+'''

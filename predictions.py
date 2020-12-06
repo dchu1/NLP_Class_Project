@@ -75,8 +75,9 @@ def getUserPreds(username):
     m = Model()
     correctPreds = list(np.array(labels)==np.array(predictions)).count(True)
     print('Correcly Predicted %i/%i comments in r/democrats or r/republican subreddits'%(correctPreds,len(predictions)))
-    res['valAcc'] = correctPreds/len(predictions)
-    print('The validation accuracy is:',res['valAcc'])
+    if(len(predictions) > 0):
+        res['valAcc'] = correctPreds/len(predictions)
+        print('The validation accuracy is:',res['valAcc'])
     return(res)
 
 if __name__ == "__main__":

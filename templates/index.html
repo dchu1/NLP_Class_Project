@@ -1,0 +1,36 @@
+<html>
+<head>
+    <title>Demo</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+	<!-- jQuery -->
+	<script type="text/javascript" src="static/jquery.min.js"></script>
+
+	<!-- Static Files -->
+	<script type="text/javascript" src="static/script.js"></script>
+	<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="loader hide"><div class="circle"></div></div>
+    <div class="topContainer">
+        <div class="text header">Project Demo</div>
+        <div class="text">dfc296, zd793, rj1469</div>
+    </div>
+    <div class="inputContainer">
+        <textarea rows="1" id="inp" placeholder="Input comment or username here"></textarea>
+        <button class="button" onclick="clfUsername()">Classify username</button>
+        <!--<button class="button" onclick="clfComment()">Classify comment</button>-->
+    </div>
+    <div class="resContainer">
+        <div class="boxContainer">
+            <div class="box info totComments"><div class="text">Total comments posted</div><div class="val">-</div></div>
+            <div class="box info trueDem"><div class="text b2">Comments to r/democrats</div><div class="val">-</div></div>
+            <div class="box info trueRep"><div class="text b2">Comments to r/republican</div><div class="val">-</div></div>
+            <div class="box info valAcc"><div class="text b2">Validation Accuracy</div><div class="val">-</div></div>
+            <div class="box clfDem"><div class="text">Comments classified democratic</div><div class="val">-</div></div><div class="box clfRep"><div class="text">Comments classified Republican</div><div class="val">-</div></div>
+            <div class="box commentContainer dem"></div>
+            <div class="box commentContainer rep"></div>
+        </div>
+    </div>
+</body>
+</html>

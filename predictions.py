@@ -29,7 +29,7 @@ def getUserPreds(username):
     print('Fetching comments for user:',username)
     comments = [] #fetch comments of user
 
-    downloader = Downloader(save_local=False,max_comment_count=1000) #DEBUG
+    downloader = Downloader(save_local=False,max_comment_count=999)
     res = downloader.fetch_subreddit('user',username)
 
     data = res[['subreddit','score','body']]
@@ -41,12 +41,18 @@ def getUserPreds(username):
     predictions = makePredictions(comments)
     data.insert(0,'predictions',predictions,True)
 
+    
+
+
     res = {
         'predDem': list(predictions).count(0),
         'predRep':list(predictions).count(1),
         'countDem':len(data[data['subreddit']=='democrats']),
         'countRep': len(data[data['subreddit']=='Republican'])
     }
+
+    res['demPredComments'] = (data[data['predictions']==0]['body']).tolist()
+    res['repPredComments'] = (data[data['predictions']==1]['body']).tolist()
 
     print('Total classified as Democrat:',res['predDem'])
     print('Total classified as Republican:',res['predRep'])
@@ -56,27 +62,20 @@ def getUserPreds(username):
     repData = data[data['subreddit']=='Republican']
     demData = data[data['subreddit']=='democrats']
     
-    demPredComments = []
-    repPredComments = []
     labels = []
     predictions = []
     for _,x in demData.iterrows():
         labels.append(0)
-        demPredComments.append(x['body'])
         predictions.append(x['predictions'])
     for _,x in repData.iterrows():
         labels.append(1)
-        repPredComments.append(x['body'])
         predictions.append(x['predictions'])
-
-    res['demPredComments'] = demPredComments
-    res['repPredComments'] = repPredComments
 
     m = Model()
     correctPreds = list(np.array(labels)==np.array(predictions)).count(True)
     print('Correcly Predicted %i/%i comments in r/democrats or r/republican subreddits'%(correctPreds,len(predictions)))
     if(len(predictions) > 0):
-        res['valAcc'] = correctPreds/len(predictions)
+        res['valAcc'] = '%0.2f'%(correctPreds/len(predictions))
         print('The validation accuracy is:',res['valAcc'])
     return(res)
 

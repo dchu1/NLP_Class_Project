@@ -29,7 +29,7 @@ class Downloader:
   
   TODO: update code to allow for before and after range
   """
-  def fetch_subreddit(self, content_type, subreddit_name):
+  def fetch_subreddit(self, content_type, content_name):
     before_epoch=int(dt.datetime.now().timestamp())
     content = []
     
@@ -41,32 +41,47 @@ class Downloader:
       # if we want comments
       if content_type == "comments":
         gen = self.api.search_comments(
-            subreddit=subreddit_name,
+            subreddit=content_name,
             filter=self.filter_fields,
             before=before_epoch
         )
-      else: # otherwise we want submissions
+      elif content_type == "submissions": # otherwise we want submissions
         gen = self.api.search_submissions(
-            subreddit=subreddit_name,
+            subreddit=content_name,
             filter=self.filter_fields,
             before=before_epoch,
             score='>2',
             is_self=True # only want selftext submissions
         )
+      elif content_type == "user": # otherwise we want user comments
+        gen = self.api.search_comments(
+            filter=self.filter_fields,
+            before=before_epoch,
+            author=content_name
+        )
+      else:
+        raise Exception("Content type not valid")
     else:
       # if we want comments
       if content_type == "comments":
         gen = self.api.search_comments(
-            subreddit=subreddit_name,
+            subreddit=content_name,
             before=before_epoch
         )
-      else: # otherwise we want submissions
+      elif content_type == "submissions": # otherwise we want submissions
         gen = self.api.search_submissions(
-            subreddit=subreddit_name,
+            subreddit=content_name,
             before=before_epoch,
             score='>2',
             is_self=True # only want selftext submissions
         )
+      elif content_type == "user": # otherwise we want user comments
+        gen = self.api.search_comments(
+            before=before_epoch,
+            author=content_name
+        )
+      else:
+        raise Exception("Content type not valid")
 
     with tqdm(total=self.max_comment_count) as pbar:
       for c in gen:
@@ -75,15 +90,18 @@ class Downloader:
         if len(content) >= self.max_comment_count:
           break
 
-    df_subreddit = pd.DataFrame([thing.d_ for thing in content])#.drop(["created_utc", "created"], axis=1)
-    if content_type == "comments":
-      df_subreddit = df_subreddit[~(df_subreddit.body.isin(["[removed]","[deleted]"])) & (df_subreddit.score > 0)]
+    if content_type != "user":
+      df_subreddit = pd.DataFrame([thing.d_ for thing in content])#.drop(["created_utc", "created"], axis=1)
+      if content_type == "comments":
+        df_subreddit = df_subreddit[~(df_subreddit.body.isin(["[removed]","[deleted]"])) & (df_subreddit.score > 0)]
+      else:
+        df_subreddit = df_subreddit[~(df_subreddit.selftext.isin(["[removed]","[deleted]"])) & (df_subreddit.score > 0) & (df_subreddit.num_comments > 1)]
     else:
-      df_subreddit = df_subreddit[~(df_subreddit.selftext.isin(["[removed]","[deleted]"])) & (df_subreddit.score > 0) & (df_subreddit.num_comments > 1)]
+      df_subreddit = pd.DataFrame([thing.d_ for thing in content])
 
     """Pickle the data for download if necessary"""
     if self.save_local:
-      filename = subreddit_name + "_" + content_type + ".csv"
+      filename = content_name + "_" + content_type + ".csv"
       if self.compress:
         compression_opts = dict(method='zip', archive_name=filename)
         df_subreddit.to_csv(os.path.join(self.outpath, filename), index=False, compression=compression_opts) 

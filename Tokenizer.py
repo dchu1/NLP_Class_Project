@@ -31,7 +31,7 @@ class Tokenizer:
             self.stopwords = stopwords.words('english')
 
     def __str__(self):
-        return('Custom Vectorizer using '+self.mode+' Vectorization')
+        return('NLTK Tokenizer using '+self.mode+' Tokenization')
 
     def fitTransform(self, data):
         return self.transform(data)

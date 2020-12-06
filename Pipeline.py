@@ -48,12 +48,12 @@ class Pipeline:
         self.model.fit(Xt, y)
         return Xt
     
-    def predict(self, X, y, *args):
+    def predict(self, X, *args):
         # make a copy
         Xt = self.transform(X)
         
         # make ur prediction
-        return self.model.predict(Xt, y, *args)
+        return self.model.predict(Xt, *args)
 
     def validate(self, predictions, labels, *args):
-        self.model.validate(predictions, labels, *args)
+        return self.model.validate(labels, predictions, *args)

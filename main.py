@@ -6,6 +6,7 @@ from Tokenizer import Tokenizer
 from Stemmer import Stemmer
 from Splitter import splitRows
 from OptimNN import OptimNN
+import heapq
 import pdb
 import numpy as np
 import pandas as pd
@@ -99,7 +100,8 @@ def main(argv):
         elif arg == "nn-optim":
             # Memory optimized neural network.
             transforms.append(OptimNN(vecMode='TFIDF',epochs=2,batchSize=2048))
-
+        else:
+            raise Exception(f"Invalid transformer {arg}")
     pipe = Pipeline(transforms, norm=norm)
 
     # read our data (hardcoded for now)
@@ -128,11 +130,27 @@ def main(argv):
 
     if(verbose):
         print('Applying Transforms and Training Model')
+        print('Train Data:', train_path)
+        print('Test Data:', test_path)
+        print('Transforms:', argv[0])
     # fit our data
     pipe.fit_transform(X_train, y_train)
 
     # do the prediction
-    pipe.predict(X_test, y_test)
+    y_pred = pipe.predict(X_test)
+    results = pipe.validate(y_pred, y_test, True, True)
+    
+    # get most suprising misclassifications for class 0
+    print("Most suprising texts misclassified as class 0")
+    idx_list = heapq.nlargest(5, results[2][0], key = lambda x: x[1])
+    for i,(idx,prob) in enumerate(idx_list):
+        print(f"{i}) probability class 1 = {prob}\n{X_test[idx]}, \n")
+
+    # get most suprising misclassifications for class 1
+    print("Most suprising texts misclassified as class 1")
+    idx_list = heapq.nlargest(5, results[2][1], key = lambda x: x[1])
+    for i,(idx,prob) in enumerate(idx_list):
+        print(f"{i}) probability class 0 = {prob}\n{X_test[idx]}\n")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

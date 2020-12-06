@@ -71,23 +71,45 @@ class Model:
             dump(self.model, 'saved/model.sav')
         return(res)
     
-    def validate(self,labels,predictions,verbose = True):
+    def validate(self,labels,predictions, predictions_proba = False, verbose = True):
         from sklearn.metrics import precision_recall_fscore_support
         if(self.modelType == 'Neural Network'):
             predictions = makePredArr(predictions)
+        if predictions_proba:
+            predictions_proba = predictions
+            predictions = np.argmax(predictions_proba, axis=1)
         results = precision_recall_fscore_support(labels, predictions)
         acc = (list(predictions==labels).count(True))/(len(predictions))
         if(verbose):
-            print('Accuracy of the model:\t %0.3f'%(acc))
-            print('Precision wrt. class 0:\t %0.3f'%(results[0][0]))
-            print('Recall wrt. class 0:\t %0.3f'%(results[1][0]))
-            print('F1 Score wrt. class 0:\t %0.3f'%(results[2][0]))
+            # print('Accuracy of the model:\t %0.3f'%(acc))
+            # print('Precision wrt. class 0:\t %0.3f'%(results[0][0]))
+            # print('Recall wrt. class 0:\t %0.3f'%(results[1][0]))
+            # print('F1 Score wrt. class 0:\t %0.3f'%(results[2][0]))
+            from sklearn.metrics import classification_report
+            from sklearn.metrics import confusion_matrix
+            print(classification_report(labels, predictions))
+            print('Confusion matrix:')
+            cm = confusion_matrix(labels, predictions)
+            for row in cm:
+                print(row)
 
-        return(results,acc)
+            # get most suprising misclassifications
+            misclassified = ([],[])
+            # go through each prediction
+            for i,pred_label in enumerate(predictions):
+                # if the prediction was incorrect, put it in that labels list along with probability
+                if pred_label != labels[i]:
+                    misclassified[labels[i]].append((i, predictions_proba[i][pred_label]))
+        return(results,acc,misclassified)
 
     def predict(self, testData, testLabels = None, verbose = True):
         if(self.modelType == 'Neural Network' and isinstance(testData, csr_matrix)):
             testData = testData.toarray()
-        predictions = self.model.predict(testData)
-        if(testLabels is not None):
-            return(self.validate(list(testLabels), predictions, verbose = verbose))
+        # if verbose and nb or lr, get proba estimates to determine which were the worst classified
+        if verbose and (self.modelType == 'Logistic Regression' or self.modelType == 'Naive Bayes'):
+            predictions = self.model.predict_proba(testData)
+        else:
+            predictions = self.model.predict(testData)
+        return predictions
+        # if(testLabels is not None):
+        #     return(self.validate(list(testLabels), predictions, predictions_proba = proba, verbose = verbose))

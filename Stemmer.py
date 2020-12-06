@@ -30,7 +30,7 @@ class Stemmer:
         self.join = join
 
     def __str__(self):
-        return('Custom Vectorizer using '+self.mode+' Vectorization')
+        return('NLTK Stemmer using '+self.mode+' Stemming')
 
     # data is a list of strings or a list of list of strings
     # returns either a list of words or a joined list

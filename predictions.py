@@ -8,6 +8,40 @@ from Downloader import Downloader
 from Model import Model
 import sys
 
+politicalSubreddits = [
+    "Democrats",
+    "Republican",
+    "WorldNews",
+    "News",
+    "Business",
+    "Economics",
+    "Environment",
+    "Energy",
+    "Law",
+    "Education",
+    "Government",
+    "Wikileaks",
+    "SOPA",
+    "Libertarian",
+    "Anarchism",
+    "Socialism",
+    "Progressive",
+    "Conservative",
+    "Liberal",
+    "Egalitarian",
+    "DemocraticSocialism",
+    "Republicans",
+    "Egalitarianism",
+    "AnarchaFeminism",
+    "Communist",
+    "Conspiracy",
+    "USpolitics",
+    "JoeBiden",
+    "Trump"
+]
+politicalSubreddits = [x.lower() for x in politicalSubreddits]
+politicalSubredditsOnly = True
+
 # Config: toke,stem-lemmatize,vect-tfidf,lr
 tokenizer = Tokenizer()
 stemmer = Stemmer('Lemmatize')
@@ -33,6 +67,9 @@ def getUserPreds(username):
     res = downloader.fetch_subreddit('user',username)
 
     data = res[['subreddit','score','body']]
+    if(politicalSubredditsOnly):
+        data = data[data.apply(lambda x: (x['subreddit']).lower() in politicalSubreddits, axis = 1)]
+
     comments = data['body'].to_numpy()
     if(len(comments) == 0):
         print('No comments found. Exiting')
@@ -98,6 +135,6 @@ if __name__ == "__main__":
         
 '''
 Test usernames
-True Democrat: TrumpizzaTraitor
-True Republican: IBiteYou
+True Democrat: walter1950, TrumpizzaTraitor, Juvisy7
+True Republican: imsquidward4032, IBiteYou
 '''
